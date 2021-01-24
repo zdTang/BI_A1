@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace BI_A1
 {
-    class DataModel
+    public class DataModel
     {
         public  string Country { set; get; }
         public  int Output { set; get; }

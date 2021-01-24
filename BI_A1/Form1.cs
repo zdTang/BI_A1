@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Windows.Forms.DataVisualization.Charting;
 
 namespace BI_A1
 {
@@ -34,16 +35,16 @@ namespace BI_A1
             for (int i=0; i < dataGridView1.Rows.Count; i++)
             {
 
-                    string a = dataGridView1.Rows[0].Cells[0].Value.ToString();
-                    int b = Convert.ToInt32(dataGridView1.Rows[0].Cells[1].Value);
+                    string a = dataGridView1.Rows[i].Cells[0].Value.ToString();
+                    int b = Convert.ToInt32(dataGridView1.Rows[i].Cells[1].Value);
                     newList.Add(new DataModel(a,b));
 
             }
-            MessageBox.Show(newList.Count().ToString());
+            //MessageBox.Show(newList.Count().ToString());
             draw(newList);
         }
 
-        public void draw(List<(int, int)> r)
+        public void draw(List<DataModel> list)
         {
             chart1.Series.Clear();
             //Clear existed Series
@@ -59,13 +60,23 @@ namespace BI_A1
             //chart1.ChartAreas[0].AxisX.Minimum = 0;             //设定x轴的最小值
             //chart1.ChartAreas[0].AxisY.Minimum = 0;             //设定y轴的最小值
             chart1.ChartAreas[0].AxisY.Interval = 10;             //Setup Y axis interval
-            int sum = 0;
+
+            List<DataModel> r = list.OrderByDescending(O => O.Output).ToList();
+            
+            int sumPartial = 0;                                                    // int sum = 0;
+            int sum = r.Sum(s => s.Output);
+            int Maxium = r[0].Output;
+
             for (int i = 0; i < r.Count; i++)
             {
-                sum += r[i].Item2;
-                string reasonLable = DataConvert.GetReasonLable(r[i].Item1);
-                barSeries.Points.AddXY(reasonLable, r[i].Item2);  //Setup Points value，X and Y 
-                lineSeries.Points.AddXY(reasonLable, sum);
+                sumPartial += r[i].Output;
+                float ratio = (float)sumPartial / (float)sum;
+                int NewRatio =(int)(ratio * Maxium);
+                //sum += r[i].Output;
+                //string reasonLable = (r[i].Country);
+                barSeries.Points.AddXY(r[i].Country, r[i].Output);  //Setup Points value，X and Y 
+                lineSeries.Points.AddXY(r[i].Country, NewRatio);
+                //lineSeries.Points.AddXY(r[i].Country, sum);
             }
 
             chart1.Series.Add(barSeries);
