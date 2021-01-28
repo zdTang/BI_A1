@@ -1,4 +1,11 @@
-﻿using System;
+﻿/*===============================================================
+ * File: Forml.cs
+ * Project:  BI_A1
+ * Programmer: Zhendong Tang
+ * First Version: Jan 24, 2021 
+ * Description: this project will demo how to use chart control
+ ===============================================================*/
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -16,73 +23,86 @@ namespace BI_A1
         public Form1()
         {
             InitializeComponent();
-            //使用List<>泛型集合填充DataGridView  
+            
             List<DataModel> Data = new List<DataModel>();
-            DataModel hat = new DataModel("Hathaway",12);
-            DataModel peter = new DataModel("Peter",17);
-            DataModel dell = new DataModel("Dell", 45);
-            DataModel anne = new DataModel("Anne", 40);
-            Data.Add(hat);
-            Data.Add(peter);
-            Data.Add(dell);
-            Data.Add(anne);
-            this.dataGridView1.DataSource = Data;
+            
+            Data.Add(new DataModel("Mike", 20));
+            Data.Add(new DataModel("Peter", 10));
+            Data.Add(new DataModel("Rose", 4));
+            Data.Add(new DataModel("Russ", 8));
+            Data.Add(new DataModel("Jerry", 2));
+            Data.Add(new DataModel("John", 6));
+
+            this.dataGridView1.DataSource = Data;         // initiate data for data grid view
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
             List<DataModel> newList=new List<DataModel>();
+            // collect data from data grid view and add into a List
             for (int i=0; i < dataGridView1.Rows.Count; i++)
             {
 
-                    string a = dataGridView1.Rows[i].Cells[0].Value.ToString();
-                    int b = Convert.ToInt32(dataGridView1.Rows[i].Cells[1].Value);
-                    newList.Add(new DataModel(a,b));
+                 string a = dataGridView1.Rows[i].Cells[0].Value.ToString();
+                 int b = Convert.ToInt32(dataGridView1.Rows[i].Cells[1].Value);
+                 newList.Add(new DataModel(a,b));
 
             }
-            //MessageBox.Show(newList.Count().ToString());
-            draw(newList);
+            draw(newList);         // draw chart based on data of grid view
         }
-
+        /*========================================================================
+         * Function: draw
+         * Description: this function will draw chart based on given data collection
+         * Parameters: List<DataModel> list: a data source for drawing a chart
+         * Return: None
+         ==========================================================================*/
         public void draw(List<DataModel> list)
         {
-            chart1.Series.Clear();
-            //Clear existed Series
-            Series barSeries = new Series("Bar");             //new a Series
-            Series lineSeries = new Series("Line");
-            barSeries.ChartType = SeriesChartType.Column;
-            lineSeries.ChartType = SeriesChartType.Line;  //Set chart type as Bar
-            barSeries.IsValueShownAsLabel = true;                  //use Value as Tap
+            chart1.Series.Clear();                                // Clear old chart
+            chart1.Titles.Clear();                                // Clear old title
+            chart1.Titles.Add("Total Output Chart");              // Draw title
 
-            chart1.ChartAreas[0].AxisX.MajorGrid.Interval = 0;    //Set up Grid（这里设成0.5，看得更直观一点）
-            ////chart1.ChartAreas[0].AxisX.Maximum = 100;         //设定x轴的最大值
-            //chart1.ChartAreas[0].AxisY.Maximum = 100;           //设定y轴的最大值
-            //chart1.ChartAreas[0].AxisX.Minimum = 0;             //设定x轴的最小值
-            //chart1.ChartAreas[0].AxisY.Minimum = 0;             //设定y轴的最小值
-            chart1.ChartAreas[0].AxisY.Interval = 10;             //Setup Y axis interval
-
-            List<DataModel> r = list.OrderByDescending(O => O.Output).ToList();
+            Series barSeries = new Series("Personal output");                 //new a Series
+            Series lineSeries = new Series("cumulated percentage");               //new another series   
+            barSeries.ChartType = SeriesChartType.Column;         //set chart type as Bar
+            lineSeries.ChartType = SeriesChartType.Line;          //Set chart type as Line
+            barSeries.IsValueShownAsLabel = true;                 //use Value as Tap
+            lineSeries.IsValueShownAsLabel = true;                 //use Value as Tap
+            lineSeries.LabelFormat = "0%";                        // setup value display format as percentage
+            barSeries.YAxisType = AxisType.Primary;               //Bar use the primary Y axis
+            lineSeries.YAxisType = AxisType.Secondary;            //Line use the Secondary Y axis
+            lineSeries.MarkerStyle = MarkerStyle.Circle;          //Display the point
             
-            int sumPartial = 0;                                                    // int sum = 0;
-            int sum = r.Sum(s => s.Output);
-            int Maxium = r[0].Output;
-
+            chart1.ChartAreas[0].AxisX.Title = "Name";            //Setup Y1 axis title 
+            chart1.ChartAreas[0].AxisY.Title = "Personal Output";          //Setup X axis title
+            chart1.ChartAreas[0].AxisY2.Title = "Cumulated Percentage";        //Setup Y2 axis's title
+            chart1.ChartAreas[0].AxisY2.LabelStyle.Format = "0%"; //Setup Y2 axis's format as %
+            chart1.ChartAreas[0].AxisY2.Maximum = 1;              //Setup Y2 axis's maximum value
+            chart1.ChartAreas[0].RecalculateAxesScale();          //Setup the chart will recalculate axes scale
+            lineSeries.Color = System.Drawing.Color.FromArgb(255, 0, 0);//Setup the Line chart's color as red
+            List <DataModel> r = list.OrderByDescending(O => O.Output).ToList();    // resort the List
+            
+            double sumPartial = 0;                                                   // partial cumulated value for line chart
+            double sum = r.Sum(s => s.Output);                                       // Summary output
+ 
+            // here to add value of List into Points
             for (int i = 0; i < r.Count; i++)
             {
                 sumPartial += r[i].Output;
-                float ratio = (float)sumPartial / (float)sum;
-                int NewRatio =(int)(ratio * Maxium);
-                //sum += r[i].Output;
-                //string reasonLable = (r[i].Country);
-                barSeries.Points.AddXY(r[i].Country, r[i].Output);  //Setup Points value，X and Y 
-                lineSeries.Points.AddXY(r[i].Country, NewRatio);
-                //lineSeries.Points.AddXY(r[i].Country, sum);
+                double ratio = sumPartial / sum;                                     // ratio of partial cumulated output           
+                barSeries.Points.AddXY(r[i].Name, r[i].Output);                      // Setup Points value for Bar chart
+                lineSeries.Points.AddXY(r[i].Name, ratio);                           // Setup Points value for Line chart
             }
-
+            
+            // Add two series onto the chart
             chart1.Series.Add(barSeries);
-            chart1.Series.Add(lineSeries);  // Add series onto the chart
+            chart1.Series.Add(lineSeries);  
 
         }
 
+        private void button2_Click(object sender, EventArgs e)
+        {
+            Application.Exit();
+        }
     }
 }

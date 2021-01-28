@@ -1,4 +1,8 @@
-﻿using System;
+﻿/*===============================================================
+ * fileName: dataModel.cs
+ * Description: this file provide a simple class used as data model
+ ===============================================================*/
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,12 +12,12 @@ namespace BI_A1
 {
     public class DataModel
     {
-        public  string Country { set; get; }
+        public  string Name { set; get; }
         public  int Output { set; get; }
 
-        public DataModel(string coun, int output)
+        public DataModel(string name, int output)
         {
-            this.Country = coun;
+            this.Name = name;
             this.Output = output;
         }
     }
